@@ -1,0 +1,55 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible: "Добавить задачу"
+    timeout: 30000
+- tapOn: "Добавить задачу"
+- tapOn:
+    text: "Что нужно сделать?"
+- inputText: ${TASK_NAME}
+- hideKeyboard
+- tapOn: "Сохранить"
+- extendedWaitUntil:
+    visible: ${TASK_NAME}
+    timeout: 30000
+- assertVisible: ${TASK_NAME}
+- assertNotVisible:
+    text: ${TASK_NAME}
+    index: 1
+- tapOn:
+    text: ${TASK_NAME}
+    index: 0
+- extendedWaitUntil:
+    visible: "Отменить выполнение"
+    timeout: 30000
+- tapOn: "Отменить выполнение"
+- extendedWaitUntil:
+    visible: "Выполнить"
+    timeout: 30000
+- tapOn: "Выполнить"
+- extendedWaitUntil:
+    visible: "Отменить выполнение"
+    timeout: 30000
+- back
+- extendedWaitUntil:
+    visible: "Добавить задачу"
+    timeout: 30000
+- assertVisible: ${TASK_NAME}
+- tapOn:
+    text: ${TASK_NAME}
+    index: 0
+- extendedWaitUntil:
+    visible: "Удалить"
+    timeout: 30000
+- tapOn: "Удалить"
+- extendedWaitUntil:
+    visible: "Отменить"
+    timeout: 30000
+- assertNotVisible: ${TASK_NAME}
+- tapOn: "Отменить"
+- extendedWaitUntil:
+    visible: ${TASK_NAME}
+    timeout: 30000
+- assertVisible: ${TASK_NAME}

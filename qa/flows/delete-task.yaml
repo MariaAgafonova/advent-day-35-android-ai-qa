@@ -1,0 +1,45 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    appId: ${APP_ID}
+    clearState: false
+    stopApp: true
+- extendedWaitUntil:
+    visible: Добавить задачу
+    timeout: 30000
+- tapOn:
+    text: Добавить\ задачу
+- tapOn:
+    text: Что\ нужно\ сделать\?
+- inputText: ${TASK_NAME}
+- tapOn:
+    text: Сохранить
+- assertVisible:
+    text: ${SOURCE_DATE_LABEL}
+- assertVisible:
+    text: ${TASK_NAME}
+- assertNotVisible:
+    text: ${TASK_NAME}
+    index: 1
+- assertVisible:
+    text: Выполнить\ «${TASK_NAME}»
+    checked: false
+- tapOn:
+    text: Действия\ с\ задачей\ «${TASK_NAME}»
+- tapOn:
+    text: Удалить
+- assertVisible:
+    text: ${SOURCE_DATE_LABEL}
+- assertNotVisible:
+    text: ${TASK_NAME}
+- launchApp:
+    appId: ${APP_ID}
+    clearState: false
+    stopApp: true
+- extendedWaitUntil:
+    visible: Добавить задачу
+    timeout: 30000
+- assertVisible:
+    text: ${SOURCE_DATE_LABEL}
+- assertNotVisible:
+    text: ${TASK_NAME}

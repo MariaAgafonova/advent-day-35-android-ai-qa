@@ -1,0 +1,16 @@
+.venv/
+.tools/
+.cache/
+.gradle/
+.kotlin/
+**/build/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+local.properties
+artifacts/
+.idea/

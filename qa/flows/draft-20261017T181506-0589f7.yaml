@@ -1,0 +1,33 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: false
+- tapOn:
+    text: "Добавить задачу"
+- tapOn:
+    text: "Что нужно сделать?"
+- inputText: ${TASK_NAME}
+- hideKeyboard
+- tapOn:
+    text: "Сохранить"
+- extendedWaitUntil:
+    visible: ${TASK_NAME}
+    timeout: 10000
+- assertVisible:
+    text: ${TASK_NAME}
+- assertVisible:
+    text: "Выполнить «${TASK_NAME}»"
+- assertNotVisible:
+    text: "Напишите название задачи"
+- back
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible: ${TASK_NAME}
+    timeout: 10000
+- assertVisible:
+    text: ${TASK_NAME}
+- assertVisible:
+    text: "Выполнить «${TASK_NAME}»"
+- assertNotVisible:
+    text: "Напишите название задачи"

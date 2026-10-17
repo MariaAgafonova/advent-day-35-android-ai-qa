@@ -1,0 +1,12 @@
+# Paths resolve from the working directory; CLI > environment > this file > defaults.
+app_id: ru.natoday.app
+model: deepseek-flash
+vision_model: null
+base_url: https://api.deepseek.com
+device: emulator-5554
+max_steps: 100
+timeout: 900
+max_calls: 120
+max_tokens: 200000
+cleanup: passed
+profile: baseline

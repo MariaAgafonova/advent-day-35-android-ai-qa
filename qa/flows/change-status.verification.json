@@ -1,0 +1,8 @@
+{
+  "status": "verified",
+  "source_report": "D:\\AIAdvent\\advent-day-35-android-ai-qa\\artifacts\\android-qa\\20261017T180546-8f6682",
+  "replay_report": "D:\\AIAdvent\\advent-day-35-android-ai-qa\\artifacts\\android-qa\\20261017T181653-b2e813",
+  "normalization_report": "D:\\AIAdvent\\advent-day-35-android-ai-qa\\artifacts\\android-qa\\20261017T181653-7bfd1e",
+  "device": "emulator-5554",
+  "maestro": "2.11.0"
+}
