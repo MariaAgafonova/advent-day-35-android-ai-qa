@@ -77,13 +77,19 @@ def export(report, app_id, commands, task_name, scenario, date_values=None):
         value=cmd.get("tapOn",{}) if isinstance(cmd,dict) else {}
         text=value.get("text","") if isinstance(value,dict) else ""
         target=(date_values or {}).get("TARGET_CALENDAR_DATE")
+        target_date=re.search(r"\b(\d{1,2}\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря))\b",target or "",re.I)
+        calendar_date=target_date.group(1) if target_date else None
+        normalized_text=re.sub(r"\s+"," ",text.replace("\u00a0"," ").replace("\u202f"," "))
+        normalized_date=re.sub(r"\s+"," ",calendar_date or "")
         if text.startswith(re.escape("Выполненные")):
             ending="показать" if "показать" in text else "скрыть"
             cleaned.append({"tapOn":{"text":"Выполненные.*"+ending}})
             continue
         if text==re.escape("Перейти к следующему месяцу"): continue
-        if target and re.escape(target) in text:
-            calendar_selector={"text":".*${TARGET_CALENDAR_DATE}.*"}
+        if normalized_date and normalized_date in normalized_text:
+            # Calendar accessibility labels include a localized weekday and may
+            # use narrow no-break spaces. Match the calendar day and month only.
+            calendar_selector={"text":".*"+re.escape(normalized_date)+".*"}
             cleaned.append({"runFlow":{"when":{"notVisible":calendar_selector},"commands":[{"tapOn":{"text":re.escape("Перейти к следующему месяцу")}}]}})
             cleaned.append({"tapOn":calendar_selector})
             continue
@@ -93,6 +99,7 @@ def export(report, app_id, commands, task_name, scenario, date_values=None):
     for name,value in (date_values or {}).items():
         text=text.replace(re.escape(value),"${"+name+"}").replace(value,"${"+name+"}")
     path=report.path/"generated-flows"/(scenario+".yaml")
+    path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(text,encoding="utf-8")
     report.metadata["flow"]={"path":str(path),"status":"unverified","reason":"Replay has not completed"}
     report.save()

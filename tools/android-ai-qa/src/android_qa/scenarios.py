@@ -4,7 +4,7 @@ from .models import Milestone,Predicate
 MONTHS="января февраля марта апреля мая июня июля августа сентября октября ноября декабря".split()
 DAYS="понедельник вторник среда четверг пятница суббота воскресенье".split()
 def label(d): return f"{d.day} {MONTHS[d.month-1]} {d.year}, {DAYS[d.weekday()]}"
-def calendar_label(d): return f"{d.day} {MONTHS[d.month-1]} {d.year}"
+def calendar_label(d): return f"{d.day} {MONTHS[d.month-1]}"
 
 def milestones(scenario,task,today):
     tomorrow=today+timedelta(days=1)

@@ -1,7 +1,7 @@
 {
   "status": "verified",
   "source_report": "D:\\AIAdvent\\advent-day-35-android-ai-qa\\artifacts\\android-qa\\20261017T180303-329d27",
-  "replay_report": "D:\\AIAdvent\\advent-day-35-android-ai-qa\\artifacts\\android-qa\\20261017T181546-1f7204",
+  "replay_report": "D:\\AIAdvent\\advent-day-35-android-ai-qa\\artifacts\\android-qa\\20261017T182459-31f1d6",
   "normalization_report": "D:\\AIAdvent\\advent-day-35-android-ai-qa\\artifacts\\android-qa\\20261017T181546-109133",
   "device": "emulator-5554",
   "maestro": "2.11.0"

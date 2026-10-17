@@ -29,8 +29,15 @@ appId: ${APP_ID}
     text: Действия\ с\ задачей\ «${TASK_NAME}»
 - tapOn:
     text: Перенести\ на\ дату
+- runFlow:
+    when:
+      notVisible:
+        text: .*${TARGET_CALENDAR_DATE}.*
+    commands:
+    - tapOn:
+        text: Перейти\ к\ следующему\ месяцу
 - tapOn:
-    text: воскресенье,\ ${TARGET_CALENDAR_DATE} г\.
+    text: .*${TARGET_CALENDAR_DATE}.*
 - tapOn:
     text: Сохранить
 - assertVisible:

@@ -12,13 +12,13 @@ Day 35 Android AI QA assistant, standalone repository at `D:\AIAdvent\advent-day
 - Four independent task scenarios: create, move to next day, change status, and delete. Requirements and visual rules are under `qa/specs/`; reusable flows are under `qa/flows/`.
 - Real run used visible AVD `NaTodayCalendarTest` / `emulator-5554`, Android API 35, Maestro 2.11.0, official Maestro MCP, and DeepSeek. Text, tool calling, image, and image-plus-tool-call capability probes passed. Vision is available for the tested model/configuration.
 - All four scenarios passed against the real app. Each exported parameterized flow was replayed successfully on the same emulator; `artifacts/android-qa/verified-exports.json` records the results. Evidence and reports are retained locally under ignored `artifacts/android-qa/`.
-- Python suite: 43 passed. Android `:app:testDebugUnitTest --rerun-tasks`: passed (25 tasks executed). The full Android build/lint/debug-test-APK checks also passed earlier.
+- Python suite: 44 passed. Android `:app:testDebugUnitTest --rerun-tasks`: passed (25 tasks executed). The full Android build/lint/debug-test-APK checks also passed earlier.
+- Follow-up fix: move-flow date selectors now match calendar day and month without a weekday, and navigate to the next month only when that date is not visible. The corrected flow replay passed twice on the real emulator with official Maestro MCP; latest evidence: `artifacts/android-qa/20261017T182459-31f1d6/`.
 - No production Android source was changed. User data was not cleared; scenario cleanup only targets each run's uniquely named task.
 
 ## Current state and follow-up
 
 - This repository had no commit before the checkpoint. The checkpoint commit contains the source, QA specs/flows, docs, and tests; local secrets, tool downloads, build products, virtualenv, and run artifacts remain ignored.
-- Known flow portability issue to fix before relying on the move replay on arbitrary dates: `qa/flows/move-task.yaml` currently contains the weekday `воскресенье` in its calendar-date selector. The tested run date matched it; make the selector weekday-independent, then rerun exporter validation and the move flow on the emulator.
 - Draft flow `qa/flows/draft-20261017T181754-71bc93.yaml` is intentionally unverified. Other unverified drafts are retained for inspection.
 - Supplementary input/undo/device-profile variants were not run end-to-end. Android instrumentation tests were intentionally not run because the existing tests clear application data.
 - Generated reports, screenshots, hierarchy, and logs are intentionally Git-ignored but remain on this machine. Do not treat those local paths as portable repository files.

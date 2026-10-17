@@ -1,5 +1,6 @@
 import pytest
-from android_qa.flow_exporter import validate_replay_ownership
+from types import SimpleNamespace
+from android_qa.flow_exporter import export,load_flow,validate_replay_ownership
 from android_qa.models import QAError
 
 def seed():
@@ -23,3 +24,13 @@ def test_replay_no_coordinates():
 def test_conditional_cannot_delete():
     commands=seed()+[{"runFlow":{"when":{"visible":"x"},"commands":[{"tapOn":{"text":"Удалить"}}]}}]
     with pytest.raises(QAError):validate_replay_ownership(commands,"AIQA-new")
+
+def test_export_calendar_date_ignores_localized_weekday(tmp_path):
+    report=SimpleNamespace(path=tmp_path,metadata={},save=lambda:None)
+    source=[{"tapOn":{"text":"воскресенье, 18 октября\u202fг."}}]
+    path=export(report,"ru.natoday.app",source,"AIQA-new","move",{"TARGET_CALENDAR_DATE":"18 октября"})
+    text=path.read_text(encoding="utf-8")
+    assert "воскресенье" not in text
+    assert ".*${TARGET_CALENDAR_DATE}.*" in text
+    commands=load_flow(text,{"APP_ID":"ru.natoday.app","TASK_NAME":"AIQA-new","TARGET_CALENDAR_DATE":"18 октября"})
+    assert commands[1]["tapOn"]["text"]==".*18 октября.*"
