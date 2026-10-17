@@ -38,6 +38,7 @@ class Agent:
         self.visual_states={}
         self.capabilities=capabilities or {}
         self.r.metadata.update(task_name=self.task,checkpoints=[x.model_dump() for x in self.steps])
+        self.r.save()
 
     async def observation(self):
         self.obs_count+=1
@@ -163,8 +164,9 @@ class Agent:
         await self.m.run(dump_flow(self.s.app_id,[{"tapOn":selector(target,obs)},{"tapOn":{"text":"Удалить"}},{"assertNotVisible":{"text":re.escape(self.task)}}]))
         self.r.metadata["cleanup"]="Deleted only task created by this run"
 
-async def run_scenario(s,goal,scenario,capabilities=None,planning_usage=None):
+async def run_scenario(s,goal,scenario,capabilities=None,planning_usage=None,on_report=None):
     report=Report(s.artifacts,goal,s,scenario)
+    if on_report: on_report(report)
     llm=DeepSeek(s);agent=None;status="blocked"
     if planning_usage:
         llm.calls=planning_usage["calls"];llm.tokens=planning_usage["tokens_reported"];llm.reserved_tokens=planning_usage["budget_tokens"]
@@ -185,7 +187,8 @@ async def run_scenario(s,goal,scenario,capabilities=None,planning_usage=None):
                 exc=unwrap(raw)
                 report.metadata["error"]=str(exc) or type(exc).__name__
                 category=getattr(exc,"category","interrupted" if isinstance(exc,asyncio.CancelledError) else "tool")
-                report.add(Check(name="run_completion",status="blocked",expected="All scenario checkpoints",actual=report.metadata["error"],category=category,evidence=[agent.current.hierarchy] if agent and agent.current else []))
+                evidence=([agent.current.hierarchy,*([agent.current.screenshot] if agent.current.screenshot else [])] if agent and agent.current else [])
+                report.add(Check(name="run_completion",status="blocked",expected="All scenario checkpoints",actual=report.metadata["error"],category=category,evidence=evidence))
                 if isinstance(exc,asyncio.CancelledError): raise
             finally:
                 if agent and (s.cleanup=="always" or (s.cleanup=="passed" and status=="passed")):

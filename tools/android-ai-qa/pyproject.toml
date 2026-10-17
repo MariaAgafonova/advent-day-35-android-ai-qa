@@ -18,6 +18,9 @@ dev = ["pytest>=8,<10", "pytest-asyncio>=1,<2"]
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+android_qa = ["web_*.html", "web_*.js", "web_*.css"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

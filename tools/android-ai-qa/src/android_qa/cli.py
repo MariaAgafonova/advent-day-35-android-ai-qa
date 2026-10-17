@@ -131,6 +131,16 @@ def replay(flow:Path=typer.Option(...,exists=True),device:Optional[str]=None,app
     if report.metadata["status"]!="passed": raise typer.Exit(2)
 
 @app.command()
+def web(device:str=typer.Option(...),port:int=8765,app_id:Optional[str]=None,config:Optional[Path]=None,env_file:Optional[Path]=None,repo:Optional[Path]=None):
+    """Serve the local scenario dashboard on 127.0.0.1."""
+    s=settings(config,env_file,device,app_id,repo)
+    from .web import serve
+    try: serve(s,port)
+    except (OSError,ValueError) as exc:
+        typer.echo(f"ERROR: {exc}",err=True)
+        raise typer.Exit(2)
+
+@app.command()
 def generate(goal:str=typer.Option(...),repo:Path=ROOT,config:Optional[Path]=None,env_file:Optional[Path]=None):
     """Mode A: research source/docs/tests and draft an UNVERIFIED flow."""
     s=settings(config,env_file,repo=repo)

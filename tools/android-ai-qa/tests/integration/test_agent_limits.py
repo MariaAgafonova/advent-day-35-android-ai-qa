@@ -16,6 +16,8 @@ async def test_repeated_unchanged_state_stops_without_extra_action(tmp_path,monk
     report=Report(tmp_path,"fixture",settings)
     maestro=AsyncMock()
     agent=Agent(settings,report,maestro,Model(),"create","fixture",{"date":"2026-10-17"})
+    saved=json.loads((report.path/"run.json").read_text(encoding="utf-8"))
+    assert [step["name"] for step in saved["checkpoints"]]==["created","create_persisted"]
     observation=Observation(observation_id="same",device="fixture",package="p",elements=[],hierarchy="fixture.json",fingerprint="unchanged")
     agent.observation=AsyncMock(return_value=observation)
     monkeypatch.setattr("android_qa.agent.adb",AsyncMock(return_value="2026-10-17"))
