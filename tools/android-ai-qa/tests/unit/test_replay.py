@@ -25,12 +25,16 @@ def test_conditional_cannot_delete():
     commands=seed()+[{"runFlow":{"when":{"visible":"x"},"commands":[{"tapOn":{"text":"Удалить"}}]}}]
     with pytest.raises(QAError):validate_replay_ownership(commands,"AIQA-new")
 
-def test_export_calendar_date_ignores_localized_weekday(tmp_path):
+@pytest.mark.parametrize(("calendar_text","target"),[
+    ("воскресенье, 18 октября\u202fг.","18 октября"),
+    ("понедельник, 1 января 2029\u202fг.","1 января"),
+])
+def test_export_calendar_date_ignores_localized_weekday(tmp_path,calendar_text,target):
     report=SimpleNamespace(path=tmp_path,metadata={},save=lambda:None)
-    source=[{"tapOn":{"text":"воскресенье, 18 октября\u202fг."}}]
-    path=export(report,"ru.natoday.app",source,"AIQA-new","move",{"TARGET_CALENDAR_DATE":"18 октября"})
+    source=[{"tapOn":{"text":calendar_text}}]
+    path=export(report,"ru.natoday.app",source,"AIQA-new","move",{"TARGET_CALENDAR_DATE":target})
     text=path.read_text(encoding="utf-8")
-    assert "воскресенье" not in text
+    assert "воскресенье" not in text and "понедельник" not in text
     assert ".*${TARGET_CALENDAR_DATE}.*" in text
-    commands=load_flow(text,{"APP_ID":"ru.natoday.app","TASK_NAME":"AIQA-new","TARGET_CALENDAR_DATE":"18 октября"})
-    assert commands[1]["tapOn"]["text"]==".*18 октября.*"
+    commands=load_flow(text,{"APP_ID":"ru.natoday.app","TASK_NAME":"AIQA-new","TARGET_CALENDAR_DATE":target})
+    assert commands[1]["tapOn"]["text"]==".*"+target+".*"
