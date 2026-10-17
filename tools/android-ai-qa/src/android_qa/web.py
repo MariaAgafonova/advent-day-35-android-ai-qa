@@ -14,6 +14,7 @@ from urllib.parse import unquote, urlparse
 from .agent import run_scenario
 from .cli import capabilities
 from .config import Settings
+from .diagnostics import ensure_web_device
 
 SCENARIOS = {
     "create": ("Создание задачи", "Создать одну задачу на сегодня и проверить значения и сохранение."),
@@ -113,11 +114,16 @@ class RunManager:
             return dict(job)
 
     def _worker(self, job):
+        def set_stage(stage):
+            with self.lock:
+                if self.current and self.current["id"] == job["id"]:
+                    self.current.update(stage=stage)
         def report_created(report):
             with self.lock:
                 if self.current and self.current["id"] == job["id"]:
                     self.current.update(report_id=report.id, status="running")
         try:
+            ensure_web_device(self.settings, on_status=set_stage)
             title, goal = SCENARIOS[job["scenario"]]
             report = asyncio.run(run_scenario(self.settings, goal, job["scenario"],
                                               capabilities(self.settings), on_report=report_created))
@@ -129,7 +135,7 @@ class RunManager:
         except BaseException as exc:
             with self.lock:
                 if self.current and self.current["id"] == job["id"]:
-                    self.current.update(status="blocked", error=str(exc)[:1000])
+                    self.current.update(status="blocked", error=f"{type(exc).__name__}: {exc}"[:1000])
 
     def snapshot(self):
         with self.lock:

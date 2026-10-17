@@ -16,6 +16,7 @@ class Settings(BaseModel):
     maestro: str = str(ROOT / ".tools/maestro/bin/maestro.bat")
     adb: str = shutil.which("adb") or "D:/AndroidSDK/platform-tools/adb.exe"
     device: str | None = None
+    avd_name: str | None = None
     app_id: str = "ru.natoday.app"
     repo: Path | None = ROOT
     artifacts: Path = ROOT / "artifacts/android-qa"

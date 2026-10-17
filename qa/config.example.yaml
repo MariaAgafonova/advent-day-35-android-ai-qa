@@ -4,6 +4,7 @@ model: deepseek-flash
 vision_model: null
 base_url: https://api.deepseek.com
 device: emulator-5554
+avd_name: null # Set the explicit AVD name to auto-start a stopped emulator.
 max_steps: 100
 timeout: 900
 max_calls: 120

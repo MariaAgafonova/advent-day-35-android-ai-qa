@@ -98,7 +98,7 @@ function renderDetails() {
     action.append(el("b", "", progress.current || "подготовка"));
     if (progress.action) action.append(document.createTextNode(` · ${progress.action}${progress.target ? ` · ${progress.target}` : ""}`));
     progressWrap.append(action);
-  } else if (active) progressWrap.append(el("div", "current-action", "Подключение к устройству и подготовка сценария…"));
+  } else if (active) progressWrap.append(el("div", "current-action", active.stage || "Подключение к устройству и подготовка сценария…"));
   panel.append(progressWrap);
 
   if (report?.checkpoints?.length) {

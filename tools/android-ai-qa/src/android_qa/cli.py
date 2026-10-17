@@ -131,9 +131,9 @@ def replay(flow:Path=typer.Option(...,exists=True),device:Optional[str]=None,app
     if report.metadata["status"]!="passed": raise typer.Exit(2)
 
 @app.command()
-def web(device:str=typer.Option(...),port:int=8765,app_id:Optional[str]=None,config:Optional[Path]=None,env_file:Optional[Path]=None,repo:Optional[Path]=None):
+def web(device:str=typer.Option(...),port:int=8765,app_id:Optional[str]=None,avd:Optional[str]=typer.Option(None,help="AVD name to start if the selected emulator is stopped"),config:Optional[Path]=None,env_file:Optional[Path]=None,repo:Optional[Path]=None):
     """Serve the local scenario dashboard on 127.0.0.1."""
-    s=settings(config,env_file,device,app_id,repo)
+    s=settings(config,env_file,device,app_id,repo,avd_name=avd)
     from .web import serve
     try: serve(s,port)
     except (OSError,ValueError) as exc:

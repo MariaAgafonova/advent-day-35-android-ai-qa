@@ -31,7 +31,7 @@ def test_report_view_exposes_check_result_and_local_screenshot(tmp_path):
     assert check_error["screenshots"] == view["checks"][0]["screenshots"]
 
 
-def test_run_manager_rejects_parallel_scenarios(monkeypatch, tmp_path):
+def test_run_manager_rejects_parallel_scenarios(monkeypatch):
     started = threading.Event()
     release = threading.Event()
 
@@ -42,8 +42,13 @@ def test_run_manager_rejects_parallel_scenarios(monkeypatch, tmp_path):
             on_report(SimpleNamespace(id="report-123"))
         return SimpleNamespace(id="report-123", metadata={"status": "passed", "flow": {"status": "verified"}})
 
+    def fake_device_ready(_settings, on_status=None):
+        if on_status:
+            on_status("Device ready")
+
     monkeypatch.setattr(web, "run_scenario", fake_run)
-    manager = web.RunManager(Settings(artifacts=tmp_path, device="emulator-test"))
+    monkeypatch.setattr(web, "ensure_web_device", fake_device_ready)
+    manager = web.RunManager(Settings(artifacts=Path("unused-artifacts"), device="emulator-test"))
     first = manager.start("create")
     assert first and started.wait(1)
     assert manager.start("delete") is None

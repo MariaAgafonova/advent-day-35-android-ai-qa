@@ -1,8 +1,11 @@
 import asyncio
 import json
+import os
 import platform
 import shutil
+import subprocess
 import sys
+import time
 from pathlib import Path
 from .models import QAError
 
@@ -33,6 +36,116 @@ async def select_device(settings):
         if devices[0][1] != "device": raise QAError("device", "Device is not ready")
         settings.device = devices[0][0]
     return devices
+
+def ensure_web_device(settings, on_status=None):
+    """Ensure the explicitly selected emulator is online and fully booted.
+
+    A stopped emulator can only be started when its AVD is explicit or when
+    exactly one AVD is installed. Physical devices are never launched.
+    """
+    def status(message):
+        if on_status:
+            on_status(message)
+
+    if not settings.device:
+        raise QAError("device", "Select --device explicitly before starting a scenario")
+    if not settings.device.startswith("emulator-"):
+        states = _sync_device_states(settings)
+        if states.get(settings.device) != "device":
+            raise QAError("device", "Selected device unavailable or unauthorized")
+        status("Waiting for Android device to finish booting")
+        _sync_wait_for_boot(settings, timeout=30)
+        return
+
+    _sync_command([settings.adb, "start-server"], timeout=15)
+    devices = _sync_device_states(settings)
+    state = devices.get(settings.device)
+    if state == "device":
+        status("Waiting for Android emulator to finish booting")
+        _sync_wait_for_boot(settings, timeout=180)
+        return
+    if state == "offline":
+        status("Emulator is connecting; waiting for ADB authorization and boot")
+        _sync_wait_for_boot(settings, timeout=180)
+        return
+    if state is not None:
+        raise QAError("device", f"Selected emulator {settings.device} is not usable (ADB state: {state})")
+
+    adb_path = Path(settings.adb).resolve()
+    sdk_root = adb_path.parent.parent
+    emulator = sdk_root / "emulator" / ("emulator.exe" if os.name == "nt" else "emulator")
+    if not emulator.is_file():
+        raise QAError("device", f"Emulator executable not found next to ADB: {emulator}")
+    env = {**os.environ, "ANDROID_HOME": str(sdk_root), "ANDROID_SDK_ROOT": str(sdk_root)}
+    code, listed, error = _sync_command([emulator, "-list-avds"], timeout=20, env=env)
+    if code:
+        raise QAError("device", "Cannot list Android emulators: " + error[:400])
+    avds = [line.strip() for line in listed.splitlines() if line.strip()]
+    selected = settings.avd_name
+    if selected and selected not in avds:
+        raise QAError("device", f"Configured AVD '{selected}' is unavailable. Installed AVDs: {avds}")
+    if not selected:
+        if len(avds) != 1:
+            raise QAError("device", "Selected emulator is stopped. Specify its AVD with --avd (installed: " + ", ".join(avds) + ")")
+        selected = avds[0]
+    suffix = settings.device.removeprefix("emulator-")
+    try:
+        port = int(suffix)
+    except ValueError as exc:
+        raise QAError("device", "Invalid emulator serial: " + settings.device) from exc
+    if not 1 <= port <= 65534 or port % 2:
+        raise QAError("device", "Emulator serial must contain an even port between 1 and 65534")
+    status(f"Starting Android emulator {selected} on {settings.device}")
+    try:
+        process = subprocess.Popen([str(emulator), "-avd", selected, "-port", str(port)], env=env)
+    except OSError as exc:
+        raise QAError("device", "Could not start Android emulator: " + str(exc)) from exc
+    try:
+        exit_code = process.wait(timeout=2)
+    except subprocess.TimeoutExpired:
+        pass  # The visible emulator process is expected to keep running.
+    else:
+        if exit_code:
+            raise QAError("device", f"Emulator exited during startup (code {exit_code}); check the AVD image and SDK path")
+    status("Waiting for Android emulator boot")
+    _sync_wait_for_boot(settings, timeout=240)
+
+def _sync_command(args, timeout=30, env=None):
+    try:
+        result = subprocess.run(
+            list(map(str, args)), capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=timeout, env=env,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise QAError("device", f"Could not run {Path(str(args[0])).name}: {exc}") from exc
+    return result.returncode, result.stdout.strip(), result.stderr.strip()
+
+def _sync_device_states(settings):
+    code, out, err = _sync_command([settings.adb, "devices", "-l"], timeout=15)
+    if code:
+        raise QAError("device", "adb devices failed: " + (err or out)[:400])
+    states = {}
+    for line in out.splitlines()[1:]:
+        fields = line.split()
+        if len(fields) >= 2:
+            states[fields[0]] = fields[1]
+    return states
+
+def _sync_wait_for_boot(settings, timeout):
+    deadline = time.monotonic() + timeout
+    last_state = None
+    while time.monotonic() < deadline:
+        states = _sync_device_states(settings)
+        last_state = states.get(settings.device)
+        if last_state == "device":
+            code, out, _ = _sync_command(
+                [settings.adb, "-s", settings.device, "shell", "getprop", "sys.boot_completed"], timeout=10
+            )
+            if code == 0 and out.strip() == "1":
+                return
+        time.sleep(2)
+    raise QAError("device", f"Selected device {settings.device} did not finish booting (ADB state: {last_state or 'absent'})")
 
 async def metadata(settings):
     fields = {}
