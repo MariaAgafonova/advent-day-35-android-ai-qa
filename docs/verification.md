@@ -19,10 +19,10 @@
 
 ## Локальные проверки
 
-- `python -m pytest tools/android-ai-qa/tests -q`: 44 теста пройдены после исправления календарного flow. Тесты используют mock API/MCP и не заменяют проверки выше.
+- `python -m pytest tools/android-ai-qa/tests -q`: 45 тестов пройдены после исправления календарного flow. Тесты используют mock API/MCP и не заменяют проверки выше.
 - `:app:testDebugUnitTest --rerun-tasks`: успешно, 25 задач выполнены.
 - Debug APK, Android lint и сборка instrumentation APK прошли ранее.
-- `doctor --check-api` проверил текстовый запрос, tool calling, изображение и изображение вместе с tool calling на выбранной конфигурации DeepSeek. Эти запросы расходуют API-квоту.
+- `doctor --check-api` проверил текстовый запрос, tool calling, изображение и изображение вместе с tool calling на `deepseek-v4-flash`; все четыре проверки прошли. Отчёт: `20261017T183234-b92aaf`. Эти запросы расходуют API-квоту.
 
 ## Ограничения
 
